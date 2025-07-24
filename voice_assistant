@@ -1,0 +1,87 @@
+import pyttsx3
+import speech_recognition as sr
+import datetime
+import wikipedia
+import webbrowser
+import pyjokes
+import sys
+
+# Initialize text-to-speech engine
+engine = pyttsx3.init()
+voices = engine.getProperty('voices')
+engine.setProperty('voice', voices[1].id)  # Female voice (use 0 for male)
+
+def speak(text):
+    engine.say(text)
+    engine.runAndWait()
+
+def wish_user():
+    hour = datetime.datetime.now().hour
+    if 0 <= hour < 12:
+        speak("Good morning!")
+    elif 12 <= hour < 18:
+        speak("Good afternoon!")
+    else:
+        speak("Good evening!")
+    speak("I am Jarvis. How can I assist you today?")
+
+def take_command():
+    recognizer = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("Listening...")
+        recognizer.pause_threshold = 1
+        audio = recognizer.listen(source)
+
+    try:
+        print("Recognizing...")
+        query = recognizer.recognize_google(audio, language="en-in")
+        print(f"User said: {query}\n")
+    except sr.UnknownValueError:
+        speak("Sorry, I didn't catch that. Please say it again.")
+        return "None"
+    return query.lower()
+
+def run_jarvis():
+    wish_user()
+    while True:
+        query = take_command()
+
+        if 'wikipedia' in query:
+            speak('Searching Wikipedia...')
+            query = query.replace("wikipedia", "")
+            results = wikipedia.summary(query, sentences=2)
+            speak("According to Wikipedia")
+            print(results)
+            speak(results)
+
+        elif 'open youtube' in query:
+            webbrowser.open("https://www.youtube.com")
+
+        elif 'open google' in query:
+            webbrowser.open("https://www.google.com")
+
+        elif 'time' in query:
+            current_time = datetime.datetime.now().strftime("%H:%M:%S")
+            speak(f"The time is {current_time}")
+
+        elif 'date' in query:
+            current_date = datetime.datetime.now().strftime("%B %d, %Y")
+            speak(f"Today's date is {current_date}")
+
+        elif 'joke' in query:
+            joke = pyjokes.get_joke()
+            speak(joke)
+
+        elif 'who are you' in query or 'what is your name' in query:
+            speak("I am Jarvis, your virtual assistant.")
+
+        elif 'exit' in query or 'quit' in query or 'bye' in query:
+            speak("Goodbye! Have a nice day.")
+            sys.exit()
+
+        else:
+            speak("I didn't understand that. Please try again.")
+
+# Run the assistant
+if __name__ == "__main__":
+    run_jarvis()
